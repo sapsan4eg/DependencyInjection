@@ -1,0 +1,22 @@
+{
+  "name":         "sixx/DependencyInjection",
+  "description":  "Simple Dependency Injection in php",
+  "keywords":     ["Dependency Injection", "IoC", "php"],
+  "homepage":     "https://github.com/sapsan4eg/DependencyInjection",
+  "type":         "library",
+  "license":      "MIT",
+  "authors":      [
+    {
+      "name":      "Yuri Nasyrov",
+      "email":     "sapsan4eg@ya.ru"
+    }
+  ],
+  "require": {
+    "php": ">=5.6.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Sixx\\DependencyInjection\\": "src/"
+    }
+  }
+}
