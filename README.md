@@ -3,7 +3,7 @@
  
 ## INSTALLATION WITH COMPOSER
  
- `composer require sixx/DependencyInjection`
+ `composer require sixx/dependency-injection`
  
 ## EXAMPLE
 
