@@ -1,5 +1,5 @@
 {
-  "name":         "sixx/DependencyInjection",
+  "name":         "sixx/dependency-injection",
   "description":  "Simple Dependency Injection in php",
   "keywords":     ["Dependency Injection", "IoC", "php"],
   "homepage":     "https://github.com/sapsan4eg/DependencyInjection",
