@@ -7,6 +7,17 @@ class ChildClass extends ParentClass
      */
     protected $start;
 
+    /**
+     * @second
+     * @var IStart
+     */
+    public $starter;
+
+    /**
+     * @star
+     * @param IStart $start
+     * @return $this
+     */
     public function hello(IStart $start)
     {
         $this->start = $start;
@@ -46,12 +57,23 @@ class ParentClass
         $this->next = $next;
         $this->c = $c;
     }
+
+    /**
+     * @second 
+     * @param IStart $start
+     * @return IStart
+     */
+    public function getStarter(IStart $start)
+    {
+        return $start;
+    }
 }
 
 class Next implements INext
 {
     /**
      * @var IStart
+     * @second
      */
     public $start;
 
@@ -72,6 +94,11 @@ interface INext
 }
 
 class Start implements IStart
+{
+
+}
+
+class Starter implements IStart
 {
 
 }

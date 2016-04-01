@@ -143,3 +143,55 @@
     
     $class = Inject::instantiation("FirstClassInterface");
     var_dump($class instanceof FirstClass); // must return true
+
+ ### Different classes to one interface via DocComment
+    <?php
+    require_once __DIR__ . "/vendor/autoload.php";
+
+    interface SomeInterface
+    {
+
+    }
+
+    class First implements SomeInterface
+    {
+
+    }
+
+    class Second implements SomeInterface
+    {
+
+    }
+
+    class A
+    {
+        /**
+         * @thisAnnotationForSecondClass
+         * @var SomeInterface
+         */
+        public $secondVariable;
+
+        protected $firstVariable;
+
+        /**
+         * A constructor.
+         * @thisAnnotatnionForFristClass
+         * @param SomeInterface $my
+         */
+        public function __construct(SomeInterface $my)
+        {
+            $this->firstVariable = $my;
+        }
+
+        public function getFirst()
+        {
+            return $this->firstVariable;
+        }
+    }
+
+    use \Sixx\DependencyInjection\Inject;
+    Inject::bindByArray(["SomeInterface" => ["thisAnnotatnionForFristClass" => "First", "thisAnnotationForSecondClass" => "Second"]]);
+
+    $class = Inject::instantiation("A");
+    var_dump($class->secondVariable instanceof Second); // must return true
+    var_dump($class->getFirst() instanceof First); // must return true

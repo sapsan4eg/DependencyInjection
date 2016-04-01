@@ -10,6 +10,11 @@ class Inject
     protected static $injectAnnotation = '@var';
 
     /**
+     * @var ServiceContainer
+     */
+    protected static $serviceContainer;
+
+    /**
      * @param string $className
      * @param array $parameters
      * @throws InjectException
@@ -20,8 +25,8 @@ class Inject
         if (! class_exists($className)) {
 
             if (interface_exists($className)) {
-                if (self::injectedParameter(new \ReflectionClass($className)))
-                    return self::instantiation(self::getServiceName($className), $parameters);
+                if (self::container()->isInjected($className))
+                    return self::instantiation(self::container()->getServiceName($className), $parameters);
 
                 throw new InjectException("Inject error: interface " . $className . " exist but not injected yet.");
             }
@@ -54,8 +59,8 @@ class Inject
         if (! class_exists($className)) {
 
             if (interface_exists($className)) {
-                if (self::injectedParameter(new \ReflectionClass($className)))
-                    return self::method(self::getServiceName($className), $methodName, $parameters);
+                if (self::container()->isInjected($className))
+                    return self::method(self::container()->getServiceName($className), $methodName, $parameters);
 
                 throw new InjectException("Inject error: interface " . $className . " exist but not injected yet.");
             }
@@ -86,9 +91,9 @@ class Inject
             foreach ($method->getParameters() as $parameter) {
                 if (isset($parameters[$parameter->getName()]))
                     $arguments[$parameter->getName()] = $parameters[$parameter->getName()];
-                elseif (self::injectedParameter($parameter->getClass()))
-                    $arguments[$parameter->getName()] = self::instantiation(self::getServiceName($parameter->getClass()->name));
-                elseif (self::instantiatedParameter($parameter->getClass()))
+                elseif (null != $parameter->getClass() && self::container()->isInjected($parameter->getClass()->name, $method->getDocComment()))
+                    $arguments[$parameter->getName()] = self::instantiation(self::container()->getServiceName($parameter->getClass()->name, $method->getDocComment()));
+                elseif (self::container()->isInstantiate($parameter->getClass()))
                     $arguments[$parameter->getName()] = self::instantiation($parameter->getClass()->name);
                 elseif (true != $parameter->isOptional())
                     throw new InjectException("Required parameter [" . $parameter->getName() . "] in " . $method->getDeclaringClass()->name  . "::" . $method->getName() . " is not specified.");
@@ -98,33 +103,6 @@ class Inject
         }
 
         return $arguments;
-    }
-
-    /**
-     * @param \ReflectionClass|null $class
-     * @return bool
-     */
-    protected static function injectedParameter(\ReflectionClass $class = null)
-    {
-        if (null == $class || null == self::getServiceName($class->name))
-            return false;
-
-        if (false == (new \ReflectionClass(self::getServiceName($class->name)))->implementsInterface($class->name))
-            throw new InjectException("Inject error: class " . self::getServiceName($class->name) . " must implement " . $class->name);
-
-        return true;
-    }
-
-    /**
-     * @param \ReflectionClass|null $class
-     * @return bool
-     */
-    protected static function instantiatedParameter(\ReflectionClass $class = null)
-    {
-        if (null == $class || $class->isAbstract() || $class->isInterface())
-            return false;
-
-        return true;
     }
 
     /**
@@ -142,10 +120,9 @@ class Inject
             $className = self::getVariableTypeName($property->getDocComment(), self::$injectAnnotation);
 
             if (class_exists($className) || interface_exists($className)) {
-                $propertyClass = new \ReflectionClass($className);
-                if (self::injectedParameter($propertyClass))
-                    $class->$name = self::instantiation(self::getServiceName($className));
-                elseif (self::instantiatedParameter($propertyClass))
+                if (self::container()->isInjected($className, $property->getDocComment()))
+                    $class->$name = self::instantiation(self::container()->getServiceName($className, $property->getDocComment()));
+                elseif (self::container()->isInstantiate(new \ReflectionClass($className)))
                     $class->$name = self::instantiation($className);
             }
         }
@@ -168,24 +145,14 @@ class Inject
     }
 
     /**
-     * @param string $serviceName
-     * @param string $annotation
-     * @return null|string
+     * @return ServiceContainer
      */
-    protected static function getServiceName($serviceName, $annotation = "")
+    protected static function container()
     {
-        if (isset(self::$services[$serviceName])) {
-            if (is_string(self::$services[$serviceName]))
-                return self::$services[$serviceName];
-            elseif (is_array(self::$services[$serviceName])) {
-                foreach (self::$services[$serviceName] as $name => $service) {
-                    if (false !== strpos($annotation, "@" . $name))
-                        return $service;
-                }
-            }
-        }
+        if (empty(self::$serviceContainer))
+            self::$serviceContainer = new ServiceContainer();
 
-        return null;
+        return self::$serviceContainer;
     }
 
     /**
@@ -193,7 +160,7 @@ class Inject
      */
     public static function flushServices()
     {
-        self::$services = [];
+        self::container()->flushServices();
     }
 
     /**
@@ -203,25 +170,7 @@ class Inject
      */
     public static function bind($interface, $class)
     {
-        if (false == is_string($interface) || false == (is_string($class) || is_array($class)))
-            return false;
-
-        if (is_string($class))
-            self::$services[$interface] = $class;
-        else {
-            $classes = [];
-            foreach ($class as $name => $value) {
-                if (is_string($name) && is_string($value))
-                    $classes[$name] = $value;
-            }
-
-            if (0 == count($classes))
-                return false;
-
-            self::$services[$interface] = $classes;
-        }
-
-        return true;
+        return self::container()->bind($interface, $class);
     }
 
     /**

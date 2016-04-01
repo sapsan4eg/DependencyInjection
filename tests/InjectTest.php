@@ -7,7 +7,7 @@ class InjectTest extends PHPUnit_Framework_TestCase
     public function setUp()
     {
         require_once __DIR__ . "/TestClasses/Classes.php";
-        Inject::bindByArray(["IStart" => "Start", "INext" => "Next"]);
+        Inject::bindByArray(["IStart" => ["star" => "Start", "second" => "Starter"], "INext" => "Next"]);
     }
 
     public function testInstantiation()
@@ -17,7 +17,7 @@ class InjectTest extends PHPUnit_Framework_TestCase
 
     public function testMethod()
     {
-        $this->assertInstanceOf("Start", Inject::method("INext", "tryMe"));
+        $this->assertInstanceOf("Starter", Inject::method("INext", "tryMe"));
     }
 
     public function testCheckAllInInjected()
@@ -25,6 +25,8 @@ class InjectTest extends PHPUnit_Framework_TestCase
         $class = Inject::method("ChildClass", "hello", ["c" => "fff"]);
         $this->assertInstanceOf("Next", $class->getNext());
         $this->assertInstanceOf("Start", $class->getStart());
-        $this->assertInstanceOf("Start", $class->getNext()->tryMe());
+        $this->assertInstanceOf("Starter", $class->getNext()->tryMe());
+        $this->assertInstanceOf("Starter", Inject::method("ChildClass", "getStarter", ["c" => "fff"]));
+        $this->assertInstanceOf("Starter", $class->starter);
     }
 }

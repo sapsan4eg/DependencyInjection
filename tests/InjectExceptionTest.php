@@ -1,6 +1,7 @@
 <?php
 
 use \Sixx\DependencyInjection\Inject;
+use \Sixx\DependencyInjection\ServiceContainer;
 
 class InjectExceptionTest extends PHPUnit_Framework_TestCase
 {
@@ -54,5 +55,17 @@ class InjectExceptionTest extends PHPUnit_Framework_TestCase
     {
         Inject::bind("INext", "Next");
         Inject::method("ChildClass", "hello", ["c" => "wer"]);
+    }
+
+    /**
+     * @expectedException \Sixx\DependencyInjection\Exceptions\InjectException
+     * @expectedExceptionMessage Inject error: class Start must implement INext
+     */
+    public function testExceptionClassMustImplements()
+    {
+        $class = new ServiceContainer();
+
+        $class->bind("INext", "Start");
+        $class->isInjected("INext");
     }
 }
