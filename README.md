@@ -144,7 +144,7 @@
     $class = Inject::instantiation("FirstClassInterface");
     var_dump($class instanceof FirstClass); // must return true
 
- ### Different classes to one interface via DocComment
+### Different classes to one interface via DocComment
     <?php
     require_once __DIR__ . "/vendor/autoload.php";
 
