@@ -53,6 +53,6 @@ class InjectExceptionTest extends PHPUnit_Framework_TestCase
     public function testExceptionRequiredParameter()
     {
         Inject::bind("INext", "Next");
-        Inject::method("ChildClass", "hello");
+        Inject::method("ChildClass", "hello", ["c" => "wer"]);
     }
 }

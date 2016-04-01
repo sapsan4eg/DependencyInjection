@@ -18,8 +18,13 @@ class Inject
     public static function instantiation($className, array $parameters = null)
     {
         if (! class_exists($className)) {
-            if (interface_exists($className) && self::injectedParameter(new \ReflectionClass($className)))
-                return self::instantiation(self::getService($className), $parameters);
+
+            if (interface_exists($className)) {
+                if (self::injectedParameter(new \ReflectionClass($className)))
+                    return self::instantiation(self::getServiceName($className), $parameters);
+
+                throw new InjectException("Inject error: interface " . $className . " exist but not injected yet.");
+            }
 
             throw new InjectException("Inject error: class " . $className . " not exist.");
         }
@@ -47,8 +52,13 @@ class Inject
             return self::instantiation($className, $parameters);
 
         if (! class_exists($className)) {
-            if (interface_exists($className) && self::injectedParameter(new \ReflectionClass($className)))
-                return self::method(self::getService($className), $methodName, $parameters);
+
+            if (interface_exists($className)) {
+                if (self::injectedParameter(new \ReflectionClass($className)))
+                    return self::method(self::getServiceName($className), $methodName, $parameters);
+
+                throw new InjectException("Inject error: interface " . $className . " exist but not injected yet.");
+            }
 
             throw new InjectException("Inject error: class " . $className . " not exist.");
         }
@@ -58,7 +68,7 @@ class Inject
         if (false == $classCheck->hasMethod($methodName) || false == $classCheck->getMethod($methodName)->isPublic())
             throw new InjectException("Inject error: method " . $methodName . " in " . $className . " not exist or not public.");
 
-        $class = self::instantiation($className);
+        $class = self::instantiation($className, $parameters);
         return $classCheck->getMethod($methodName)->invokeArgs($class, self::getParameters(new \ReflectionMethod($className, $methodName), $parameters));
     }
 
@@ -77,7 +87,7 @@ class Inject
                 if (isset($parameters[$parameter->getName()]))
                     $arguments[$parameter->getName()] = $parameters[$parameter->getName()];
                 elseif (self::injectedParameter($parameter->getClass()))
-                    $arguments[$parameter->getName()] = self::instantiation(self::getService($parameter->getClass()->name));
+                    $arguments[$parameter->getName()] = self::instantiation(self::getServiceName($parameter->getClass()->name));
                 elseif (self::instantiatedParameter($parameter->getClass()))
                     $arguments[$parameter->getName()] = self::instantiation($parameter->getClass()->name);
                 elseif (true != $parameter->isOptional())
@@ -96,11 +106,11 @@ class Inject
      */
     protected static function injectedParameter(\ReflectionClass $class = null)
     {
-        if (null == $class || null == self::getService($class->name))
+        if (null == $class || null == self::getServiceName($class->name))
             return false;
 
-        if (false == (new \ReflectionClass(self::getService($class->name)))->implementsInterface($class->name))
-            throw new InjectException("Inject error: class " . self::getService($class->name) . " must implement " . $class->name);
+        if (false == (new \ReflectionClass(self::getServiceName($class->name)))->implementsInterface($class->name))
+            throw new InjectException("Inject error: class " . self::getServiceName($class->name) . " must implement " . $class->name);
 
         return true;
     }
@@ -118,23 +128,6 @@ class Inject
     }
 
     /**
-     * Flush all services from Inject
-     */
-    public static function flushServices()
-    {
-        self::$services = [];
-    }
-
-    /**
-     * @param string $interface
-     * @param string $class
-     */
-    public static function bind($interface, $class)
-    {
-        self::$services[$interface] = $class;
-    }
-
-    /**
      * @param object $class
      * @param array|null $properties
      * @return object
@@ -146,13 +139,13 @@ class Inject
              * @var \ReflectionProperty $property
              */
             $name = $property->getName();
-            $className = self::getVariableTypeName($property->getDocComment());
+            $className = self::getVariableTypeName($property->getDocComment(), self::$injectAnnotation);
 
             if (class_exists($className) || interface_exists($className)) {
                 $propertyClass = new \ReflectionClass($className);
                 if (self::injectedParameter($propertyClass))
-                    $class->$name = self::instantiation(self::getService($className));
-                 elseif (self::instantiatedParameter($propertyClass))
+                    $class->$name = self::instantiation(self::getServiceName($className));
+                elseif (self::instantiatedParameter($propertyClass))
                     $class->$name = self::instantiation($className);
             }
         }
@@ -161,28 +154,74 @@ class Inject
     }
 
     /**
-     * @param $string
+     * @param string $string
+     * @param string $injectAnnotation
      * @return bool|string
      */
-    protected static function getVariableTypeName($string)
+    protected static function getVariableTypeName($string, $injectAnnotation)
     {
-        if (strpos($string, self::$injectAnnotation) === false)
+        if (strpos($string, $injectAnnotation) === false)
             return false;
 
-        $name = substr($string, strpos($string, self::$injectAnnotation) + strlen(self::$injectAnnotation));
-        return trim(substr($name, 0, strpos($name, "\r\n")));
+        $name = substr($string, strpos($string, self::$injectAnnotation) + strlen($injectAnnotation));
+        return trim(substr($name, 0, strpos($name, PHP_EOL)));
     }
 
     /**
-     * @param string $service
-     * @return string|null
+     * @param string $serviceName
+     * @param string $annotation
+     * @return null|string
      */
-    protected static function getService($service)
+    protected static function getServiceName($serviceName, $annotation = "")
     {
-        if (isset(self::$services[$service]))
-            return self::$services[$service];
+        if (isset(self::$services[$serviceName])) {
+            if (is_string(self::$services[$serviceName]))
+                return self::$services[$serviceName];
+            elseif (is_array(self::$services[$serviceName])) {
+                foreach (self::$services[$serviceName] as $name => $service) {
+                    if (false !== strpos($annotation, "@" . $name))
+                        return $service;
+                }
+            }
+        }
 
         return null;
+    }
+
+    /**
+     * Flush all services from Inject
+     */
+    public static function flushServices()
+    {
+        self::$services = [];
+    }
+
+    /**
+     * @param string $interface
+     * @param string|array $class
+     * @return bool
+     */
+    public static function bind($interface, $class)
+    {
+        if (false == is_string($interface) || false == (is_string($class) || is_array($class)))
+            return false;
+
+        if (is_string($class))
+            self::$services[$interface] = $class;
+        else {
+            $classes = [];
+            foreach ($class as $name => $value) {
+                if (is_string($name) && is_string($value))
+                    $classes[$name] = $value;
+            }
+
+            if (0 == count($classes))
+                return false;
+
+            self::$services[$interface] = $classes;
+        }
+
+        return true;
     }
 
     /**
@@ -191,7 +230,7 @@ class Inject
     public static function bindByArray(array $array)
     {
         foreach ($array as $key => $value) {
-            if (is_string($key) && is_string($value))
+            if (is_string($key) && (is_string($value) || is_array($value)))
                 self::bind($key, $value);
         }
     }

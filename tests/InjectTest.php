@@ -22,7 +22,7 @@ class InjectTest extends PHPUnit_Framework_TestCase
 
     public function testCheckAllInInjected()
     {
-        $class = Inject::method("ChildClass", "hello");
+        $class = Inject::method("ChildClass", "hello", ["c" => "fff"]);
         $this->assertInstanceOf("Next", $class->getNext());
         $this->assertInstanceOf("Start", $class->getStart());
         $this->assertInstanceOf("Start", $class->getNext()->tryMe());

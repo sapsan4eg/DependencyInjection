@@ -41,7 +41,7 @@ class ParentClass
      */
     protected $c;
 
-    public function __construct(INext $next, $c = '')
+    public function __construct(INext $next, $c)
     {
         $this->next = $next;
         $this->c = $c;
