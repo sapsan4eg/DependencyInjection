@@ -2,7 +2,7 @@
 
 namespace Sixx\DependencyInjection;
 
-use Sixx\DependencyInjection\Exceptions\InjectException;
+use Sixx\DependencyInjection\Exceptions\InjectMustImplementException;
 
 class ServiceContainer
 {
@@ -85,7 +85,7 @@ class ServiceContainer
             return false;
 
         if (false == $this->isImplement($this->getServiceName($name, $annotation), $name))
-            throw new InjectException("Inject error: class " . $this->getServiceName($name, $annotation) . " must implement " . $name);
+            throw new InjectMustImplementException("Inject error: class " . $this->getServiceName($name, $annotation) . " must implement " . $name);
 
         return true;
     }

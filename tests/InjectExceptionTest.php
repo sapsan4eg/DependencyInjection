@@ -38,7 +38,7 @@ class InjectExceptionTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException \Sixx\DependencyInjection\Exceptions\InjectException
+     * @expectedException \Sixx\DependencyInjection\Exceptions\InjectMustImplementException
      * @expectedExceptionMessage Inject error: class Start must implement INext
      */
     public function testExceptionClassMustImplement()
@@ -48,8 +48,8 @@ class InjectExceptionTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException \Sixx\DependencyInjection\Exceptions\InjectException
-     * @expectedExceptionMessage Required parameter [start] in ChildClass::hello is not specified.
+     * @expectedException \Sixx\DependencyInjection\Exceptions\InjectRequiredParameterException
+     * @expectedExceptionMessage Inject error: required parameter [start] in ChildClass::hello is not specified.
      */
     public function testExceptionRequiredParameter()
     {
@@ -58,7 +58,7 @@ class InjectExceptionTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException \Sixx\DependencyInjection\Exceptions\InjectException
+     * @expectedException \Sixx\DependencyInjection\Exceptions\InjectMustImplementException
      * @expectedExceptionMessage Inject error: class Start must implement INext
      */
     public function testExceptionClassMustImplements()
@@ -70,12 +70,22 @@ class InjectExceptionTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException \Sixx\DependencyInjection\Exceptions\InjectException
-     * @expectedExceptionMessage Required parameter [c] in SimpleParameter::__construct is not specified.
+     * @expectedException \Sixx\DependencyInjection\Exceptions\InjectRequiredParameterException
+     * @expectedExceptionMessage Inject error: required parameter [c] in SimpleParameter::__construct is not specified.
      */
     public function testExceptionRequiredParameterDifferent()
     {
         Inject::bind("INext", "Next");
         Inject::instantiation("SimpleParameter", ["c" => new Next()]);
+    }
+
+    /**
+     * @expectedException \Sixx\DependencyInjection\Exceptions\InjectNotInjectedException
+     * @expectedExceptionMessage Inject error: interface INext exist but not injected yet.
+     */
+    public function testExceptionNotInjected()
+    {
+        Inject::flushServices();
+        Inject::instantiation("INext");
     }
 }

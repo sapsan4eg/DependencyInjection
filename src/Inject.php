@@ -3,6 +3,8 @@
 namespace Sixx\DependencyInjection;
 
 use Sixx\DependencyInjection\Exceptions\InjectException;
+use Sixx\DependencyInjection\Exceptions\InjectRequiredParameterException;
+use Sixx\DependencyInjection\Exceptions\InjectNotInjectedException;
 
 class Inject
 {
@@ -28,7 +30,7 @@ class Inject
                 if (self::container()->isInjected($className))
                     return self::instantiation(self::container()->getServiceName($className), $parameters);
 
-                throw new InjectException("Inject error: interface " . $className . " exist but not injected yet.");
+                throw new InjectNotInjectedException("Inject error: interface " . $className . " exist but not injected yet.");
             }
 
             throw new InjectException("Inject error: class " . $className . " not exist.");
@@ -62,7 +64,7 @@ class Inject
                 if (self::container()->isInjected($className))
                     return self::method(self::container()->getServiceName($className), $methodName, $parameters);
 
-                throw new InjectException("Inject error: interface " . $className . " exist but not injected yet.");
+                throw new InjectNotInjectedException("Inject error: interface " . $className . " exist but not injected yet.");
             }
 
             throw new InjectException("Inject error: class " . $className . " not exist.");
@@ -96,7 +98,7 @@ class Inject
                 elseif (self::container()->isInstantiate($parameter->getClass()))
                     $arguments[$parameter->getName()] = self::instantiation($parameter->getClass()->name);
                 elseif (true != $parameter->isOptional())
-                    throw new InjectException("Required parameter [" . $parameter->getName() . "] in " . $method->getDeclaringClass()->name  . "::" . $method->getName() . " is not specified.");
+                    throw new InjectRequiredParameterException("Inject error: required parameter [" . $parameter->getName() . "] in " . $method->getDeclaringClass()->name  . "::" . $method->getName() . " is not specified.");
             }
         } catch (\ReflectionException $exception) {
             throw new InjectException("Inject error: " . $exception->getMessage());
