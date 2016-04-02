@@ -29,4 +29,11 @@ class InjectTest extends PHPUnit_Framework_TestCase
         $this->assertInstanceOf("Starter", Inject::method("ChildClass", "getStarter", ["c" => "fff"]));
         $this->assertInstanceOf("Starter", $class->starter);
     }
+
+    public function testCheckInjectParameter()
+    {
+        Inject::instantiation("SimpleParameter", ["c" => 1]);
+        Inject::instantiation("SimpleParameter", ["c" => 1, "d" => new Next()]);
+        Inject::instantiation("SimpleParameter", ["c" => 1, "d" => 2]);
+    }
 }

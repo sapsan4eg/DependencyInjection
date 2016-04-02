@@ -89,7 +89,7 @@ class Inject
 
         try {
             foreach ($method->getParameters() as $parameter) {
-                if (isset($parameters[$parameter->getName()]))
+                if (self::sameParameter($parameter, $parameters))
                     $arguments[$parameter->getName()] = $parameters[$parameter->getName()];
                 elseif (null != $parameter->getClass() && self::container()->isInjected($parameter->getClass()->name, $method->getDocComment()))
                     $arguments[$parameter->getName()] = self::instantiation(self::container()->getServiceName($parameter->getClass()->name, $method->getDocComment()));
@@ -103,6 +103,28 @@ class Inject
         }
 
         return $arguments;
+    }
+
+    /**
+     * @param \ReflectionParameter $parameter
+     * @param null|array $parameters
+     * @return bool
+     */
+    protected static function sameParameter(\ReflectionParameter $parameter, $parameters = null)
+    {
+        if (! isset($parameters[$parameter->getName()]))
+            return false;
+
+        if (null == $parameter->getClass() && is_object($parameters[$parameter->getName()]))
+            return false;
+
+        if (null != $parameter->getClass() && ! is_object($parameters[$parameter->getName()]))
+            return false;
+
+        if (null != $parameter->getClass() && ! $parameter->getClass()->isInstance($parameters[$parameter->getName()]))
+            return false;
+
+        return true;
     }
 
     /**

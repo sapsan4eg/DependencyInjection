@@ -107,3 +107,13 @@ interface IStart
 {
 
 }
+
+class SimpleParameter
+{
+    public $d;
+
+    public function __construct($c, \INext $d)
+    {
+        $this->d = $d;
+    }
+}

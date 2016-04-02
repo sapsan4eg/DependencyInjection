@@ -68,4 +68,14 @@ class InjectExceptionTest extends PHPUnit_Framework_TestCase
         $class->bind("INext", "Start");
         $class->isInjected("INext");
     }
+
+    /**
+     * @expectedException \Sixx\DependencyInjection\Exceptions\InjectException
+     * @expectedExceptionMessage Required parameter [c] in SimpleParameter::__construct is not specified.
+     */
+    public function testExceptionRequiredParameterDifferent()
+    {
+        Inject::bind("INext", "Next");
+        Inject::instantiation("SimpleParameter", ["c" => new Next()]);
+    }
 }
