@@ -16,18 +16,19 @@ class ServiceContainer
     public function getServiceName($serviceName, $annotation = "")
     {
         if (isset($this->services[$serviceName])) {
-            if (is_string($this->services[$serviceName]))
+            if (is_string($this->services[$serviceName])) {
                 return $this->services[$serviceName];
-            elseif (is_array($this->services[$serviceName]) && 0 < count($this->services[$serviceName])) {
+            } elseif (is_array($this->services[$serviceName]) && 0 < count($this->services[$serviceName])) {
                 reset($this->services[$serviceName]);
 
-                if (false == is_string($annotation) || empty($annotation))
+                if (false == is_string($annotation) || empty($annotation)) {
                     return current($this->services[$serviceName]);
+                }
 
                 foreach ($this->services[$serviceName] as $name => $service) {
-                    if (false !== strpos($annotation, "@" . $name))
+                    if (false !== strpos($annotation, "@" . $name)) {
                         return $service;
-
+                    }
                 }
 
                 reset($this->services[$serviceName]);
@@ -53,20 +54,23 @@ class ServiceContainer
      */
     public function bind($interface, $class)
     {
-        if (false == (is_string($interface) && ! empty($interface)) || false == (is_string($class) && ! empty($class) || is_array($class)))
+        if (false == (is_string($interface) && ! empty($interface)) || false == (is_string($class) && ! empty($class) || is_array($class))) {
             return false;
+        }
 
-        if (is_string($class))
+        if (is_string($class)) {
             $this->services[$interface] = $class;
-        else {
+        } else {
             $classes = [];
             foreach ($class as $name => $value) {
-                if (is_string($name) && ! empty($name) && is_string($value) && ! empty($value))
+                if (is_string($name) && ! empty($name) && is_string($value) && ! empty($value)) {
                     $classes[$name] = $value;
+                }
             }
 
-            if (0 == count($classes))
+            if (0 == count($classes)) {
                 return false;
+            }
 
             $this->services[$interface] = $classes;
         }
@@ -81,11 +85,13 @@ class ServiceContainer
      */
     public function isInjected($name = null, $annotation = null)
     {
-        if (null == $name || null == $this->getServiceName($name))
+        if (null == $name || null == $this->getServiceName($name)) {
             return false;
+        }
 
-        if (false == $this->isImplement($this->getServiceName($name, $annotation), $name))
+        if (false == $this->isImplement($this->getServiceName($name, $annotation), $name)) {
             throw new InjectMustImplementException("Inject error: class " . $this->getServiceName($name, $annotation) . " must implement " . $name);
+        }
 
         return true;
     }
@@ -106,8 +112,9 @@ class ServiceContainer
      */
     public function isInstantiate(\ReflectionClass $class = null)
     {
-        if (null == $class || $class->isAbstract() || $class->isInterface())
+        if (null == $class || $class->isAbstract() || $class->isInterface()) {
             return false;
+        }
 
         return true;
     }
