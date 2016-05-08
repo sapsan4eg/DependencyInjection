@@ -11,6 +11,14 @@ class Inject
     protected static $services = [];
     protected static $injectAnnotation = '@var';
 
+    protected function __construct()
+    {
+    }
+
+    protected function __clone()
+    {
+    }
+
     /**
      * @var ServiceContainer
      */
