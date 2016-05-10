@@ -19,6 +19,10 @@ class Inject
     {
     }
 
+    protected function __wakeup()
+    {
+    }
+
     /**
      * @var ServiceContainer
      */
@@ -60,13 +64,14 @@ class Inject
      */
     public static function method($className, $methodName, array $parameters = null)
     {
-        if (! class_exists($className)) {
+        if (!class_exists($className)) {
             if (interface_exists($className)) {
                 if (self::container()->isInjected($className)) {
                     return self::method(self::container()->getServiceName($className), $methodName, $parameters);
                 }
                 throw new InjectNotInjectedException("Inject error: interface " . $className . " exist but not injected yet.");
             }
+
             throw new InjectException("Inject error: class " . $className . " not exist.");
         }
 
@@ -118,7 +123,7 @@ class Inject
      */
     protected static function sameParameter(\ReflectionParameter $parameter, $parameters = null)
     {
-        if (! isset($parameters[$parameter->getName()])) {
+        if (!isset($parameters[$parameter->getName()])) {
             return false;
         }
 
@@ -126,11 +131,11 @@ class Inject
             return false;
         }
 
-        if (null != $parameter->getClass() && ! is_object($parameters[$parameter->getName()])) {
+        if (null != $parameter->getClass() && !is_object($parameters[$parameter->getName()])) {
             return false;
         }
 
-        if (null != $parameter->getClass() && ! $parameter->getClass()->isInstance($parameters[$parameter->getName()])) {
+        if (null != $parameter->getClass() && !$parameter->getClass()->isInstance($parameters[$parameter->getName()])) {
             return false;
         }
 

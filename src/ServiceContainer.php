@@ -7,6 +7,7 @@ use Sixx\DependencyInjection\Exceptions\InjectMustImplementException;
 class ServiceContainer
 {
     protected $services = [];
+    protected $objects = [];
 
     /**
      * @param string $serviceName
@@ -54,7 +55,7 @@ class ServiceContainer
      */
     public function bind($interface, $class)
     {
-        if (false == (is_string($interface) && ! empty($interface)) || false == (is_string($class) && ! empty($class) || is_array($class))) {
+        if (false == (is_string($interface) && !empty($interface)) || false == (is_string($class) && !empty($class) || is_array($class))) {
             return false;
         }
 
@@ -63,7 +64,7 @@ class ServiceContainer
         } else {
             $classes = [];
             foreach ($class as $name => $value) {
-                if (is_string($name) && ! empty($name) && is_string($value) && ! empty($value)) {
+                if (is_string($name) && !empty($name) && is_string($value) && !empty($value)) {
                     $classes[$name] = $value;
                 }
             }
@@ -117,5 +118,19 @@ class ServiceContainer
         }
 
         return true;
+    }
+
+    public function getObject($className)
+    {
+        if (!empty($this->objects[$className])) {
+            return $this->objects[$className];
+        }
+
+        return null;
+    }
+
+    public function setObject($className, $object)
+    {
+        $this->objects[$className] = $objectq;
     }
 }
