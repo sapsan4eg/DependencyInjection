@@ -131,6 +131,6 @@ class ServiceContainer
 
     public function setObject($className, $object)
     {
-        $this->objects[$className] = $objectq;
+        $this->objects[$className] = $object;
     }
 }
