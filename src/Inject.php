@@ -46,13 +46,25 @@ class Inject
      */
     protected static function init(\ReflectionClass $class, $parameters)
     {
+        if (self::$serviceContainer->isSingle($class->getName())) {
+            if (($object = self::$serviceContainer->getObject($class->getName()))) {
+                return $object;
+            }
+        }
+
         if (false == $class->hasMethod("__construct") || false == $class->getMethod('__construct')->isPublic()) {
             $instance = $class->newInstanceWithoutConstructor();
         } else {
             $instance = $class->newInstanceArgs(self::getParameters($class->getMethod('__construct'), $parameters));
         }
 
-        return self::fillProperties($instance, $class->getProperties(\ReflectionProperty::IS_PUBLIC));
+        $object = self::fillProperties($instance, $class->getProperties(\ReflectionProperty::IS_PUBLIC));
+
+        if (self::$serviceContainer->isSingle($class->getName())) {
+            self::$serviceContainer->setObject($class->getName(), $object);
+        }
+
+        return $object;
     }
 
     /**
@@ -74,7 +86,6 @@ class Inject
 
             throw new InjectException("Inject error: class " . $className . " not exist.");
         }
-
         $classCheck = new \ReflectionClass($className);
 
         if ('__construct' == $methodName) {

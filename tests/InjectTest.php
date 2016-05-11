@@ -7,7 +7,11 @@ class InjectTest extends PHPUnit_Framework_TestCase
     public function setUp()
     {
         require_once __DIR__ . "/TestClasses/Classes.php";
-        Inject::bindByArray(["IStart" => ["star" => "Start", "second" => "Starter"], "INext" => "Next"]);
+        Inject::bindByArray([
+            "IStart" => ["star" => "Start", "second" => ["name" => "Starter"]],
+            "INext" => "Next",
+            "SingleInterface" => ["singles" => ["name" => "Single", "single" => true]],
+        ]);
     }
 
     public function testInstantiation()
@@ -32,8 +36,16 @@ class InjectTest extends PHPUnit_Framework_TestCase
 
     public function testCheckInjectParameter()
     {
-        Inject::instantiation("SimpleParameter", ["c" => 1]);
-        Inject::instantiation("SimpleParameter", ["c" => 1, "d" => new Next()]);
-        Inject::instantiation("SimpleParameter", ["c" => 1, "d" => 2]);
+        $this->assertInstanceOf("SimpleParameter", Inject::instantiation("SimpleParameter", ["c" => 1]));
+        $this->assertInstanceOf("SimpleParameter", Inject::instantiation("SimpleParameter", ["c" => 1, "d" => new Next()]));
+        $this->assertInstanceOf("SimpleParameter", Inject::instantiation("SimpleParameter", ["c" => 1, "d" => 2]));
+    }
+
+    public function testCheckSingle()
+    {
+        $class = Inject::instantiation("SingleInterface", ["id" => 100]);
+        $this->assertEquals(100, $class->getId());
+        $class = Inject::instantiation("SingleInterface", ["id" => 200]);
+        $this->assertEquals(100, $class->getId());
     }
 }

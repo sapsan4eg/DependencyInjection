@@ -10,11 +10,23 @@ class ServiceContainer
     protected $objects = [];
 
     /**
+     * Get class name from container
      * @param string $serviceName
      * @param string $annotation
      * @return null|string
      */
     public function getServiceName($serviceName, $annotation = "")
+    {
+        return $this->getName($this->getService($serviceName, $annotation));
+    }
+
+    /**
+     * Return service
+     * @param $serviceName
+     * @param string $annotation
+     * @return null|string|bool
+     */
+    public function getService($serviceName, $annotation = "")
     {
         if (isset($this->services[$serviceName])) {
             if (is_string($this->services[$serviceName])) {
@@ -41,6 +53,34 @@ class ServiceContainer
     }
 
     /**
+     * Get name from service
+     * @param string|array $service
+     * @return string
+     */
+    protected function getName($service)
+    {
+        if (is_string($service)) {
+            return $service;
+        }
+
+        return $service['name'];
+    }
+
+    public function getSingle($service)
+    {
+        if (is_string($service) || empty($service['single']) || true != $service['single']) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function isSingle($serviceName)
+    {
+        return isset($this->objects[$serviceName]) ? true : false;
+    }
+
+    /**
      * Flush all services from ServiceContainer
      */
     public function flushServices()
@@ -64,8 +104,15 @@ class ServiceContainer
         } else {
             $classes = [];
             foreach ($class as $name => $value) {
-                if (is_string($name) && !empty($name) && is_string($value) && !empty($value)) {
-                    $classes[$name] = $value;
+
+                if (empty($name) || empty($value) || !is_string($name) || (is_array($value) && empty($value['name']))) {
+                    continue;
+                }
+
+                $classes[$name] = $value;
+
+                if (!empty($value['single']) && true == $value['single']) {
+                    $this->objects[$value['name']] = null;
                 }
             }
 

@@ -117,3 +117,23 @@ class SimpleParameter
         $this->d = $d;
     }
 }
+
+interface SingleInterface
+{
+    public function getId();
+}
+
+class Single implements SingleInterface
+{
+    protected $id;
+
+    public function __construct($id)
+    {
+        $this->id = $id;
+    }
+
+    public function getId()
+    {
+        return $this->id;
+    }
+}
