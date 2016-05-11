@@ -12,23 +12,13 @@ class ServiceContainer
     /**
      * Get class name from container
      * @param string $serviceName
-     * @param string $annotation
+     * @param string|null $annotation
      * @return null|string
      */
-    public function getServiceName($serviceName, $annotation = "")
-    {
-        return $this->getName($this->getService($serviceName, $annotation));
-    }
-
-    /**
-     * Return service
-     * @param $serviceName
-     * @param string $annotation
-     * @return null|string|bool
-     */
-    public function getService($serviceName, $annotation = "")
+    public function getServiceName($serviceName, $annotation = null)
     {
         if (isset($this->services[$serviceName])) {
+
             if (is_string($this->services[$serviceName])) {
                 return $this->services[$serviceName];
             } elseif (is_array($this->services[$serviceName]) && 0 < count($this->services[$serviceName])) {
@@ -53,28 +43,10 @@ class ServiceContainer
     }
 
     /**
-     * Get name from service
-     * @param string|array $service
-     * @return string
+     * Check this class must be is single in project
+     * @param $serviceName
+     * @return bool
      */
-    protected function getName($service)
-    {
-        if (is_string($service)) {
-            return $service;
-        }
-
-        return $service['name'];
-    }
-
-    public function getSingle($service)
-    {
-        if (is_string($service) || empty($service['single']) || true != $service['single']) {
-            return false;
-        }
-
-        return true;
-    }
-
     public function isSingle($serviceName)
     {
         return isset($this->objects[$serviceName]) ? true : false;
@@ -109,10 +81,10 @@ class ServiceContainer
                     continue;
                 }
 
-                $classes[$name] = $value;
+                $classes[$name] = is_array($value) ? $value['name'] : $value;
 
                 if (!empty($value['single']) && true == $value['single']) {
-                    $this->objects[$value['name']] = null;
+                    $this->objects[$value['name']] = 0;
                 }
             }
 
@@ -167,15 +139,25 @@ class ServiceContainer
         return true;
     }
 
+    /**
+     * Return instatiated single object
+     * @param $className
+     * @return object|null
+     */
     public function getObject($className)
     {
-        if (!empty($this->objects[$className])) {
+        if (!empty($this->objects[$className]) && is_object($this->objects[$className])) {
             return $this->objects[$className];
         }
 
         return null;
     }
 
+    /**
+     * Set object to single list
+     * @param $className
+     * @param $object
+     */
     public function setObject($className, $object)
     {
         $this->objects[$className] = $object;
