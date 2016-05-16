@@ -121,7 +121,7 @@ class Inject
                 }
             }
         } catch (\ReflectionException $exception) {
-            throw new InjectException("Inject error: " . $exception->getMessage());
+            throw new InjectException("Inject error: " . $exception->getMessage() . PHP_EOL . $exception->getTraceAsString());
         }
 
         return $arguments;

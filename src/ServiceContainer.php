@@ -17,6 +17,8 @@ class ServiceContainer
      */
     public function getServiceName($serviceName, $annotation = null)
     {
+        $serviceName = $this->removeFirstSlash($serviceName);
+
         if (isset($this->services[$serviceName])) {
 
             if (is_string($this->services[$serviceName])) {
@@ -71,6 +73,8 @@ class ServiceContainer
             return false;
         }
 
+        $interface = $this->removeFirstSlash($interface);
+
         if (is_string($class)) {
             $this->services[$interface] = $class;
         } else {
@@ -81,7 +85,7 @@ class ServiceContainer
                     continue;
                 }
 
-                $classes[$name] = is_array($value) ? $value['name'] : $value;
+                $classes[$name] = $this->removeFirstSlash((is_array($value) ? $value['name'] : $value));
 
                 if (!empty($value['single']) && true == $value['single']) {
                     $this->objects[$value['name']] = 0;
@@ -123,7 +127,19 @@ class ServiceContainer
      */
     protected function isImplement($className, $interfaceName)
     {
-        return (new \ReflectionClass($className))->implementsInterface($interfaceName);
+        if ($interfaceName == $className) {
+            return true;
+        }
+
+        if (interface_exists($interfaceName)) {
+            return (new \ReflectionClass($className))->implementsInterface($interfaceName);
+        }
+
+        if (class_exists($interfaceName) && $className) {
+            return (new \ReflectionClass($className))->isSubclassOf($interfaceName);
+        }
+
+        return false;
     }
 
     /**
@@ -161,5 +177,13 @@ class ServiceContainer
     public function setObject($className, $object)
     {
         $this->objects[$className] = $object;
+    }
+
+    protected function removeFirstSlash($string)
+    {
+        if (0 === strpos($string, '\\')) {
+            $string = substr($string, 1);
+        }
+        return $string;
     }
 }
