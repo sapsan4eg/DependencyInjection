@@ -10,7 +10,7 @@ class InjectTest extends PHPUnit_Framework_TestCase
         Inject::bindByArray([
             "IStart" => ["star" => "Start", "second" => ["name" => "Starter"]],
             "INext" => "Next",
-            "SingleInterface" => ["singles" => ["name" => "Single", "single" => true]],
+            "SingleInterface" => ["singles" => ["name" => "Single", "single" => true], 'someTest' => 'SecondSingle'],
         ]);
     }
 
@@ -47,5 +47,8 @@ class InjectTest extends PHPUnit_Framework_TestCase
         $this->assertEquals(100, $class->getId());
         $class = Inject::instantiation("SingleInterface", ["id" => 200]);
         $this->assertEquals(100, $class->getId());
+        $class = Inject::instantiation("TestForSingle");
+        $this->assertInstanceOf('Single',  $class->getSingle());
+        $this->assertInstanceOf('SecondSingle',  $class->getSecond());
     }
 }

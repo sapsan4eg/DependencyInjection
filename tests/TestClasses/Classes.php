@@ -121,6 +121,7 @@ class SimpleParameter
 interface SingleInterface
 {
     public function getId();
+    public function setId($id);
 }
 
 class Single implements SingleInterface
@@ -135,5 +136,87 @@ class Single implements SingleInterface
     public function getId()
     {
         return $this->id;
+    }
+
+    public function setId($id)
+    {
+        $this->id = $id;
+    }
+}
+class SecondSingle implements SingleInterface
+{
+    protected $id;
+
+    public function getId()
+    {
+        return $this->id;
+    }
+
+    public function setId($id)
+    {
+        $this->id = $id;
+    }
+}
+
+class TestForSingle
+{
+    /**
+     * @var Single
+     */
+    protected $single;
+    protected $second;
+
+    /**
+     * TestForSingle constructor.
+     * @param SingleInterface $secondSingle
+     * @param SingleInterface $single
+     *
+     * @singles $single
+     * @someTest $secondSingle
+     */
+    public function __construct(SingleInterface $secondSingle, SingleInterface $single)
+    {
+        $this->second = $secondSingle;
+        $this->single = $single;
+    }
+
+    public function setSecondId($id)
+    {
+        $this->second->setId($id);
+    }
+
+    public function getSingle()
+    {
+        return $this->single;
+    }
+
+    public function getSecond()
+    {
+        return $this->second;
+    }
+}
+
+interface DecoratorInterface
+{
+    public function helloWorld();
+}
+
+class TestDecorator implements DecoratorInterface
+{
+    protected $decorator;
+
+    /**
+     * TestDecorator constructor.
+     * @param DecoratorInterface $decorator
+     * @emptyDecoratorPlease
+     */
+    public function __construct(DecoratorInterface $decorator)
+    {
+        $this->decorator = $decorator;
+    }
+
+    public function helloWorld()
+    {
+        $this->decorator->helloWorld();
     }
 }

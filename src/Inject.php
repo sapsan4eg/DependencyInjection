@@ -11,6 +11,11 @@ class Inject
     protected static $services = [];
     protected static $injectAnnotation = '@var';
 
+    /**
+     * @var ServiceContainer
+     */
+    protected static $serviceContainer;
+
     protected function __construct()
     {
     }
@@ -22,11 +27,6 @@ class Inject
     protected function __wakeup()
     {
     }
-
-    /**
-     * @var ServiceContainer
-     */
-    protected static $serviceContainer;
 
     /**
      * @param string $className
@@ -113,7 +113,7 @@ class Inject
                 if (self::sameParameter($parameter, $parameters)) {
                     $arguments[$parameter->getName()] = $parameters[$parameter->getName()];
                 } elseif (null != $parameter->getClass() && self::container()->isInjected($parameter->getClass()->name, $method->getDocComment())) {
-                    $arguments[$parameter->getName()] = self::instantiation(self::container()->getServiceName($parameter->getClass()->name, $method->getDocComment()));
+                    $arguments[$parameter->getName()] = self::instantiation(self::container()->getServiceName($parameter->getClass()->name, $method->getDocComment(), $parameter->getName()));
                 } elseif (self::container()->isInstantiate($parameter->getClass())) {
                     $arguments[$parameter->getName()] = self::instantiation($parameter->getClass()->name);
                 }  elseif (true != $parameter->isOptional()) {

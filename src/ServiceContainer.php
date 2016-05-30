@@ -13,9 +13,10 @@ class ServiceContainer
      * Get class name from container
      * @param string $serviceName
      * @param string|null $annotation
+     * @param string|null $parameterName
      * @return null|string
      */
-    public function getServiceName($serviceName, $annotation = null)
+    public function getServiceName($serviceName, $annotation = null, $parameterName = null)
     {
         $serviceName = $this->removeFirstSlash($serviceName);
 
@@ -30,10 +31,29 @@ class ServiceContainer
                     return current($this->services[$serviceName]);
                 }
 
+                $possible = [];
+
                 foreach ($this->services[$serviceName] as $name => $service) {
                     if (false !== strpos($annotation, "@" . $name)) {
-                        return $service;
+                        if (null == $parameterName) {
+                            return $service;
+                        }
+
+                        $possible[$name] = $service;
                     }
+                }
+
+                if (0 < count($possible)) {
+                    foreach ($possible as $name => $service) {
+                        $temp = substr($annotation, strpos($annotation, "@" . $name) + strlen("@" . $name));
+                        $temp = trim(substr($temp, 0, strpos($temp, PHP_EOL)));
+
+                        if (!empty($temp) && false !== strpos($temp, $parameterName)) {
+                            return $service;
+                        }
+                    }
+                    reset($possible);
+                    return current($possible);
                 }
 
                 reset($this->services[$serviceName]);
@@ -156,7 +176,7 @@ class ServiceContainer
     }
 
     /**
-     * Return instatiated single object
+     * Return instantiated single object
      * @param $className
      * @return object|null
      */
@@ -179,6 +199,10 @@ class ServiceContainer
         $this->objects[$className] = $object;
     }
 
+    /**
+     * @param $string
+     * @return string
+     */
     protected function removeFirstSlash($string)
     {
         if (0 === strpos($string, '\\')) {
