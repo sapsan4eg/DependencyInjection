@@ -10,7 +10,7 @@ class InjectTest extends PHPUnit_Framework_TestCase
         Inject::bindByArray([
             "IStart" => ["star" => "Start", "second" => ["name" => "Starter"]],
             "INext" => "Next",
-            "SingleInterface" => ["singles" => ["name" => "Single", "single" => true], 'someTest' => 'SecondSingle'],
+            "SingleInterface" => ["singles" => ["name" => "Single", "single" => true], 'someTest' => ['name' => 'SecondSingle', 'parameters' => ['id' => 400]]],
         ]);
     }
 

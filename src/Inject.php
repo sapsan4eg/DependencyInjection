@@ -52,6 +52,13 @@ class Inject
             }
         }
 
+        if (($param = self::$serviceContainer->getParameters($class->getName()))) {
+            if (empty($parameters) || !is_array($parameters)) {
+                $parameters = [];
+            }
+            $parameters = array_merge($param, $parameters);
+        }
+
         if (false == $class->hasMethod("__construct") || false == $class->getMethod('__construct')->isPublic()) {
             $instance = $class->newInstanceWithoutConstructor();
         } else {

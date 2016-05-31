@@ -8,6 +8,7 @@ class ServiceContainer
 {
     protected $services = [];
     protected $objects = [];
+    protected $parameters = [];
 
     /**
      * Get class name from container
@@ -110,6 +111,10 @@ class ServiceContainer
                 if (!empty($value['single']) && true == $value['single']) {
                     $this->objects[$value['name']] = 0;
                 }
+
+                if (!empty($value['parameters']) && is_array($value['parameters'])) {
+                    $this->parameters[$value['name']] = $value['parameters'];
+                }
             }
 
             if (0 == count($classes)) {
@@ -197,6 +202,19 @@ class ServiceContainer
     public function setObject($className, $object)
     {
         $this->objects[$className] = $object;
+    }
+
+    /**
+     * @param $className
+     * @return array|null
+     */
+    public function getParameters($className)
+    {
+        if (!empty($this->parameters[$className]) && is_array($this->parameters[$className])) {
+            return $this->parameters[$className];
+        }
+
+        return null;
     }
 
     /**
