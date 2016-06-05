@@ -46,13 +46,13 @@ class Inject
      */
     protected static function init(\ReflectionClass $class, $parameters)
     {
-        if (self::$serviceContainer->isSingle($class->getName())) {
-            if (($object = self::$serviceContainer->getObject($class->getName()))) {
+        if (self::container()->isSingle($class->getName())) {
+            if (($object = self::container()->getObject($class->getName()))) {
                 return $object;
             }
         }
 
-        if (($param = self::$serviceContainer->getParameters($class->getName()))) {
+        if (($param = self::container()->getParameters($class->getName()))) {
             if (empty($parameters) || !is_array($parameters)) {
                 $parameters = [];
             }
@@ -67,8 +67,8 @@ class Inject
 
         $object = self::fillProperties($instance, $class->getProperties(\ReflectionProperty::IS_PUBLIC));
 
-        if (self::$serviceContainer->isSingle($class->getName())) {
-            self::$serviceContainer->setObject($class->getName(), $object);
+        if (self::container()->isSingle($class->getName())) {
+            self::container()->setObject($class->getName(), $object);
         }
 
         return $object;
