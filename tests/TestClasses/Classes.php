@@ -201,27 +201,16 @@ class TestForSingle
     }
 }
 
-interface DecoratorInterface
+class InjectClassParameter
 {
-    public function helloWorld();
-}
-
-class TestDecorator implements DecoratorInterface
-{
-    protected $decorator;
-
-    /**
-     * TestDecorator constructor.
-     * @param DecoratorInterface $decorator
-     * @emptyDecoratorPlease
-     */
-    public function __construct(DecoratorInterface $decorator)
+    protected  $class;
+    public function __construct($param = null)
     {
-        $this->decorator = $decorator;
+        $this->class = $param;
     }
 
-    public function helloWorld()
+    public function getClass()
     {
-        $this->decorator->helloWorld();
+        return $this->class;
     }
 }

@@ -51,4 +51,12 @@ class InjectTest extends PHPUnit_Framework_TestCase
         $this->assertInstanceOf('Single',  $class->getSingle());
         $this->assertInstanceOf('SecondSingle',  $class->getSecond());
     }
+
+    public function testCheckInjectClassLikeParameter()
+    {
+        Inject::bind('InjectClassParameter', ['default' => ['name' => 'InjectClassParameter', 'parameters' => ['param' => 'Next']]]);
+        $class = Inject::instantiation("InjectClassParameter");
+        #$this->assertEquals('ChildClass', $class->getClass());
+        $this->assertInstanceOf('Next', $class->getClass());
+    }
 }

@@ -93,6 +93,7 @@ class Inject
 
             throw new InjectException("Inject error: class " . $className . " not exist.");
         }
+
         $classCheck = new \ReflectionClass($className);
 
         if ('__construct' == $methodName) {
@@ -117,13 +118,15 @@ class Inject
 
         try {
             foreach ($method->getParameters() as $parameter) {
-                if (self::sameParameter($parameter, $parameters)) {
+                if (self::canBeInjectedParameter($parameter, $parameters)) {
+                    $arguments[$parameter->getName()] = self::instantiation($parameters[$parameter->getName()]);
+                } elseif (self::sameParameter($parameter, $parameters)) {
                     $arguments[$parameter->getName()] = $parameters[$parameter->getName()];
                 } elseif (null != $parameter->getClass() && self::container()->isInjected($parameter->getClass()->name, $method->getDocComment())) {
                     $arguments[$parameter->getName()] = self::instantiation(self::container()->getServiceName($parameter->getClass()->name, $method->getDocComment(), $parameter->getName()));
                 } elseif (self::container()->isInstantiate($parameter->getClass())) {
                     $arguments[$parameter->getName()] = self::instantiation($parameter->getClass()->name);
-                }  elseif (true != $parameter->isOptional()) {
+                } elseif (true != $parameter->isOptional()) {
                     throw new InjectRequiredParameterException("Inject error: required parameter [" . $parameter->getName() . "] in " . $method->getDeclaringClass()->name . "::" . $method->getName() . " is not specified.");
                 }
             }
@@ -158,6 +161,27 @@ class Inject
         }
 
         return true;
+    }
+
+    protected static function canBeInjectedParameter(\ReflectionParameter $parameter, $parameters)
+    {
+        if (null != $parameter->getClass()) {
+            return false;
+        }
+
+        if (!isset($parameters[$parameter->getName()])) {
+            return false;
+        }
+
+        if (!is_string($parameters[$parameter->getName()])) {
+            return false;
+        }
+
+        if (class_exists($parameters[$parameter->getName()]) || interface_exists($parameters[$parameter->getName()])) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
