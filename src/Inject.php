@@ -163,6 +163,11 @@ class Inject
         return true;
     }
 
+    /**
+     * @param \ReflectionParameter $parameter
+     * @param $parameters
+     * @return bool
+     */
     protected static function canBeInjectedParameter(\ReflectionParameter $parameter, $parameters)
     {
         if (null != $parameter->getClass()) {
