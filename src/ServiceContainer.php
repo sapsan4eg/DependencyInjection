@@ -19,50 +19,54 @@ class ServiceContainer
      */
     public function getServiceName($serviceName, $annotation = null, $parameterName = null)
     {
-        $serviceName = $this->removeFirstSlash($serviceName);
+        $serviceName = Util::removeFirstSlash($serviceName);
 
-        if (isset($this->services[$serviceName])) {
+        if (!isset($this->services[$serviceName])) {
+            return null;
+        }
 
-            if (is_string($this->services[$serviceName])) {
-                return $this->services[$serviceName];
-            } elseif (is_array($this->services[$serviceName]) && 0 < count($this->services[$serviceName])) {
-                reset($this->services[$serviceName]);
+        if (is_string($this->services[$serviceName])) {
+            return $this->services[$serviceName];
+        }
 
-                if (false == is_string($annotation) || empty($annotation)) {
-                    return current($this->services[$serviceName]);
+        if (!is_array($this->services[$serviceName]) && 0 < count($this->services[$serviceName])) {
+            return null;
+        }
+
+        reset($this->services[$serviceName]);
+
+        if (false == is_string($annotation) || empty($annotation)) {
+            return current($this->services[$serviceName]);
+        }
+
+        $possible = [];
+
+        foreach ($this->services[$serviceName] as $name => $service) {
+            if (false !== strpos($annotation, "@" . $name)) {
+                if (null == $parameterName) {
+                    return $service;
                 }
 
-                $possible = [];
-
-                foreach ($this->services[$serviceName] as $name => $service) {
-                    if (false !== strpos($annotation, "@" . $name)) {
-                        if (null == $parameterName) {
-                            return $service;
-                        }
-
-                        $possible[$name] = $service;
-                    }
-                }
-
-                if (0 < count($possible)) {
-                    foreach ($possible as $name => $service) {
-                        $temp = substr($annotation, strpos($annotation, "@" . $name) + strlen("@" . $name));
-                        $temp = trim(substr($temp, 0, strpos($temp, PHP_EOL)));
-
-                        if (!empty($temp) && false !== strpos($temp, $parameterName)) {
-                            return $service;
-                        }
-                    }
-                    reset($possible);
-                    return current($possible);
-                }
-
-                reset($this->services[$serviceName]);
-                return current($this->services[$serviceName]);
+                $possible[$name] = $service;
             }
         }
 
-        return null;
+        if (0 < count($possible)) {
+            foreach ($possible as $name => $service) {
+                $temp = substr($annotation, strpos($annotation, "@" . $name) + strlen("@" . $name));
+                $temp = trim(substr($temp, 0, strpos($temp, PHP_EOL)));
+
+                if (!empty($temp) && false !== strpos($temp, $parameterName)) {
+                    return $service;
+                }
+            }
+
+            reset($possible);
+            return current($possible);
+        }
+
+        reset($this->services[$serviceName]);
+        return current($this->services[$serviceName]);
     }
 
     /**
@@ -90,23 +94,27 @@ class ServiceContainer
      */
     public function bind($interface, $class)
     {
-        if (false == (is_string($interface) && !empty($interface)) || false == (is_string($class) && !empty($class) || is_array($class))) {
+        if (
+            false == (is_string($interface) && !empty($interface))
+            || false == (is_string($class) && !empty($class) || is_array($class))
+        ) {
             return false;
         }
 
-        $interface = $this->removeFirstSlash($interface);
+        $interface = Util::removeFirstSlash($interface);
 
         if (is_string($class)) {
             $this->services[$interface] = $class;
         } else {
             $classes = [];
+
             foreach ($class as $name => $value) {
 
                 if (empty($name) || empty($value) || !is_string($name) || (is_array($value) && empty($value['name']))) {
                     continue;
                 }
 
-                $classes[$name] = $this->removeFirstSlash((is_array($value) ? $value['name'] : $value));
+                $classes[$name] = Util::removeFirstSlash((is_array($value) ? $value['name'] : $value));
 
                 if (!empty($value['single']) && true == $value['single']) {
                     $this->objects[$value['name']] = 0;
@@ -215,17 +223,5 @@ class ServiceContainer
         }
 
         return null;
-    }
-
-    /**
-     * @param $string
-     * @return string
-     */
-    protected function removeFirstSlash($string)
-    {
-        if (0 === strpos($string, '\\')) {
-            $string = substr($string, 1);
-        }
-        return $string;
     }
 }
